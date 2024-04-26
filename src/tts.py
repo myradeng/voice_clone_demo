@@ -10,7 +10,7 @@ copy of the License at http://www.apache.org/licenses/LICENSE-2.0
 import io
 import tempfile
 
-from modal import Image, method
+from modal import Image, method, enter
 
 from .common import stub
 
@@ -45,7 +45,8 @@ tortoise_image = (
     timeout=180,
 )
 class Tortoise:
-    def __enter__(self):
+    @enter()
+    def load_model(self):
         """
         Load the model weights into GPU memory when the container starts.
         """

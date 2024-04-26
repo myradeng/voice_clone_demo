@@ -476,7 +476,7 @@ function App() {
   const [history, setHistory] = useState([]);
   const [fullMessage, setFullMessage] = useState(INITIAL_MESSAGE);
   const [typedMessage, setTypedMessage] = useState("");
-  const [model, setModel] = useState(MODELS[0].id);
+  const [model, setModel] = useState("test");
   const [botIndicators, setBotIndicators] = useState({});
   const [state, send, service] = useMachine(chatMachine);
   const [isMicOn, setIsMicOn] = useState(true);

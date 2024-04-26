@@ -5,7 +5,7 @@ Speech-to-text transcriptiong service based on OpenAI Whisper.
 import tempfile
 import time
 
-from modal import Image, method
+from modal import Image, method, enter
 
 from .common import stub
 
@@ -67,7 +67,8 @@ def load_audio(data: bytes, sr: int = 16000):
     image=transcriber_image,
 )
 class Whisper:
-    def __enter__(self):
+    @enter()
+    def load_model(self):
         import torch
         import whisper
 
