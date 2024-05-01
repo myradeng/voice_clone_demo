@@ -61,9 +61,8 @@ class GPT:
         #self.tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
         #self.streamer = TextIteratorStreamer(self.tokenizer, skip_prompt=True, skip_special_tokens=True)
 
-
     @method()
-    async def generate(self, input, api_key, history=[]):
+    async def generate(self, input, api_key=None, history=[]):
         if input == "":
             return
 
@@ -92,7 +91,7 @@ class GPT:
 
 # For local testing, run `modal run -q src.llm_gpt::main --input "Where is the best sushi in New York?"`
 @stub.function(secrets=[Secret.from_name("my-openai-secret")])
-def main(input: str):
+def test(input: str):
     model = GPT()
     for val in model.generate.remote_gen(input, api_key=os.environ["OPENAI_API_KEY"]):
         print(val, end="", flush=True)

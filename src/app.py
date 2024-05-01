@@ -5,13 +5,13 @@ API routes for transcription, language model generation and text-to-speech.
 
 import json
 from pathlib import Path
-
-from modal import Mount, asgi_app
+import os
+from modal import Mount, asgi_app, Secret
 
 from .common import stub
 from .llm_gpt import GPT
 from .transcriber import Whisper
-from .tts import Tortoise
+from .tts import TTS
 
 static_path = Path(__file__).with_name("frontend").resolve()
 
@@ -22,6 +22,7 @@ PUNCTUATION = [".", "?", "!", ":", ";", "*"]
     mounts=[Mount.from_local_dir(static_path, remote_path="/assets")],
     container_idle_timeout=300,
     timeout=600,
+    secrets=[Secret.from_name("my-openai-secret"), Secret.from_name("my-lmnt-secret")]
 )
 @asgi_app()
 def web():
@@ -32,7 +33,7 @@ def web():
     web_app = FastAPI()
     transcriber = Whisper()
     llm = GPT()
-    tts = Tortoise()
+    tts = TTS()
 
     @web_app.post("/transcribe")
     async def transcribe(request: Request):
@@ -43,7 +44,8 @@ def web():
     @web_app.post("/generate")
     async def generate(request: Request):
         body = await request.json()
-        tts_enabled = body["tts"]
+        tts_enabled = True
+        print("In app.py generate() tts_enabled", body["tts"])
 
         if "noop" in body:
             llm.generate.spawn("")
@@ -61,6 +63,7 @@ def web():
                     "value": fc.object_id,
                 }
             else:
+                print("Not tts")
                 return {
                     "type": "sentence",
                     "value": sentence,
@@ -68,11 +71,15 @@ def web():
 
         def gen():
             sentence = ""
-
-            for segment in llm.generate.remote_gen(body["input"], body["history"]):
+            
+            api_key=os.environ["OPENAI_API_KEY"]
+            model_id = os.environ["LMNT_MYRA_MODEL_ID"]
+            print("Model id: ", model_id)
+            lmnt_api_key = os.environ["LMNT_API_KEY"]
+            for segment in llm.generate.remote_gen(body["input"], api_key, body["history"]):
                 yield {"type": "text", "value": segment}
                 sentence += segment
-
+                print("in remote gen before speak")
                 for p in PUNCTUATION:
                     if p in sentence:
                         prev_sentence, new_sentence = sentence.rsplit(p, 1)
@@ -103,7 +110,7 @@ def web():
 
         if result is None:
             return Response(status_code=204)
-
+        print("streaming response in app_py")
         return StreamingResponse(result, media_type="audio/wav")
 
     @web_app.delete("/audio/{call_id}")

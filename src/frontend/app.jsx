@@ -352,16 +352,16 @@ class PlayQueue {
 
     this._isProcessing = true;
 
-    const [payload, idx, isTts] = this.call_ids.shift();
+    const [payload, idx, _] = this.call_ids.shift();
     this._updateState(idx, INDICATOR_TYPE.GENERATING);
 
-    if (!isTts) {
-      const audio = new SpeechSynthesisUtterance(payload);
-      audio.onend = () => this._onEnd(idx);
-      this._updateState(idx, INDICATOR_TYPE.TALKING);
-      window.speechSynthesis.speak(audio);
-      return;
-    }
+    // if (!isTts) {
+    //   const audio = new SpeechSynthesisUtterance(payload);
+    //   audio.onend = () => this._onEnd(idx);
+    //   this._updateState(idx, INDICATOR_TYPE.TALKING);
+    //   window.speechSynthesis.speak(audio);
+    //   return;
+    // }
 
     const call_id = payload;
     console.log("Fetching audio for call", call_id, idx);
@@ -402,10 +402,8 @@ class PlayQueue {
   }
 
   clear() {
-    for (const [call_id, _, isTts] of this.call_ids) {
-      if (isTts) {
-        fetch(`/audio/${call_id}`, { method: "DELETE" });
-      }
+    for (const [call_id, _, __] of this.call_ids) {
+      fetch(`/audio/${call_id}`, { method: "DELETE" });
     }
     this.call_ids = [];
   }
@@ -665,7 +663,7 @@ function App() {
           selected={model}
           onModelSelect={onModelSelect}
           isMicOn={isMicOn}
-          isTortoiseOn={isTortoiseOn}
+          isTortoiseOn={true}
           setIsMicOn={setIsMicOn}
           setIsTortoiseOn={setIsTortoiseOn}
         />

@@ -44,9 +44,9 @@ tortoise_image = (
     container_idle_timeout=300,
     timeout=180,
 )
-class Tortoise:
+class TTS:
     @enter()
-    def load_model(self):
+    def enter(self):
         """
         Load the model weights into GPU memory when the container starts.
         """
@@ -80,6 +80,7 @@ class Tortoise:
 
     @method()
     def speak(self, text, voices=["geralt"]):
+        print("in TTS speak")
         """
         Runs tortoise tts on a given text and voice. Alternatively, a
         web path can be to a target file to be used instead of a voice for
@@ -109,5 +110,6 @@ class Tortoise:
         )
 
         wav = self.process_synthesis_result(gen.squeeze(0).cpu())
-
+        print("Processed synthesis result")
         return wav
+        return
