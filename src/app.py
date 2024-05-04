@@ -14,12 +14,14 @@ from .transcriber import Whisper
 from .tts import TTS
 
 static_path = Path(__file__).with_name("frontend").resolve()
+audio_path = Path(__file__).with_name("audio").resolve()
 
 PUNCTUATION = [".", "?", "!", ":", ";", "*"]
 
 
 @stub.function(
-    mounts=[Mount.from_local_dir(static_path, remote_path="/assets")],
+    mounts=[Mount.from_local_dir(static_path, remote_path="/assets"), 
+            Mount.from_local_dir(audio_path, remote_path="/audio")],
     container_idle_timeout=300,
     timeout=600,
     secrets=[Secret.from_name("my-openai-secret"), Secret.from_name("my-lmnt-secret")]
@@ -101,7 +103,7 @@ def web():
     @web_app.get("/audio/{call_id}")
     async def get_audio(call_id: str):
         from modal.functions import FunctionCall
-
+        
         function_call = FunctionCall.from_id(call_id)
         try:
             result = function_call.get(timeout=30)
@@ -122,4 +124,5 @@ def web():
         function_call.cancel()
 
     web_app.mount("/", StaticFiles(directory="/assets", html=True))
+    web_app.mount("/", StaticFiles(directory="/audio", html=True))
     return web_app

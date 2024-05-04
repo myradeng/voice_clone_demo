@@ -1,115 +1,69 @@
 """
-Text-to-speech service based on the tortoise-tts library.
-
-The following code is based on code from the https://github.com/metavoicexyz/tortoise-tts-modal-api
-repository, which is licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License. You may obtain a
-copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+Calling ElevenLabs TTS API
 """
 
 import io
-import tempfile
-
-from modal import Image, method, enter
-
+import os
+from modal import Image, method, build, enter, Mount
+from pathlib import Path
 from .common import stub
 
-
-def download_models():
-    from tortoise.api import MODELS_DIR, TextToSpeech
-
-    tts = TextToSpeech(models_dir=MODELS_DIR)
-    tts.get_random_conditioning_latents()
-
+audio_path = Path(__file__).with_name("audio").resolve()
 
 tortoise_image = (
-    Image.debian_slim(python_version="3.10.8")  # , requirements_path=req)
-    .apt_install("git", "libsndfile-dev", "ffmpeg", "curl")
+    Image.debian_slim(python_version="3.12")
     .pip_install(
-        "torch==2.0.0",
-        "torchvision==0.15.1",
-        "torchaudio==2.0.1",
-        "pydub==0.25.1",
-        "transformers==4.25.1",
-        extra_index_url="https://download.pytorch.org/whl/cu117",
+        "elevenlabs",
     )
-    .pip_install("git+https://github.com/metavoicexyz/tortoise-tts")
-    .run_function(download_models)
 )
-
+with tortoise_image.imports():
+    from elevenlabs.client import ElevenLabs
+    from elevenlabs import play, save
 
 @stub.cls(
     image=tortoise_image,
     gpu="A10G",
     container_idle_timeout=300,
     timeout=180,
+    mounts=[Mount.from_local_dir(audio_path, remote_path="/audio")]
 )
 class TTS:
+    import io 
+    @build()
+    def download_model(self):
+        # from huggingface_hub import snapshot_download
+        # snapshot_download(MODEL_NAME)
+        print("Downloading model in TTS")
+        return
+
+
     @enter()
-    def enter(self):
-        """
-        Load the model weights into GPU memory when the container starts.
-        """
-        from tortoise.api import MODELS_DIR, TextToSpeech
-        from tortoise.utils.audio import load_audio, load_voices
+    def load_model(self):
+        #t0 = time.time()
+        print("Loading model in TTS")
+        return
 
-        self.load_voices = load_voices
-        self.load_audio = load_audio
-        self.tts = TextToSpeech(models_dir=MODELS_DIR)
-        self.tts.get_random_conditioning_latents()
-
-    def process_synthesis_result(self, result):
-        """
-        Converts a audio torch tensor to a binary blob.
-        """
-        import pydub
-        import torchaudio
-
-        with tempfile.NamedTemporaryFile() as converted_wav_tmp:
-            torchaudio.save(
-                converted_wav_tmp.name + ".wav",
-                result,
-                24000,
-            )
-            wav = io.BytesIO()
-            _ = pydub.AudioSegment.from_file(
-                converted_wav_tmp.name + ".wav", format="wav"
-            ).export(wav, format="wav")
-
-        return wav
-
+        #self.tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+        #self.streamer = TextIteratorStreamer(self.tokenizer, skip_prompt=True, skip_special_tokens=True)
+    
     @method()
     def speak(self, text, voices=["geralt"]):
-        print("in TTS speak")
-        """
-        Runs tortoise tts on a given text and voice. Alternatively, a
-        web path can be to a target file to be used instead of a voice for
-        one-shot synthesis.
-        """
-
-        text = text.strip()
-        if not text:
-            return
-
-        CANDIDATES = 1  # NOTE: this code only works for one candidate.
-        CVVP_AMOUNT = 0.0
-        SEED = None
-        PRESET = "fast"
-
-        voice_samples, conditioning_latents = self.load_voices(voices)
-
-        gen, _ = self.tts.tts_with_preset(
-            text,
-            k=CANDIDATES,
-            voice_samples=voice_samples,
-            conditioning_latents=conditioning_latents,
-            preset=PRESET,
-            use_deterministic_seed=SEED,
-            return_deterministic_state=True,
-            cvvp_amount=CVVP_AMOUNT,
+        print("In TTS speak")
+        client = ElevenLabs(
+            api_key="53173cda2e720caa4b7d7e00b3cdb7fb", # Defaults to ELEVEN_API_KEY
+        )
+        print("Current working directory:", os.getcwd())
+        voice = client.clone(
+            name="Myra",
+            description="Myra's voice", # Optional
+            files=["/audio/myra_1.wav", "/audio/myra_2.wav"],
         )
 
-        wav = self.process_synthesis_result(gen.squeeze(0).cpu())
-        print("Processed synthesis result")
-        return wav
-        return
+        audio = client.generate(text=text, voice=voice)
+
+        # Concatenate the audio chunks
+        audio_data = b"".join(chunk for chunk in audio)
+
+        # Convert the audio data to a binary blob
+        audio_blob = io.BytesIO(audio_data)
+        return audio_blob
