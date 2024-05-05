@@ -18,7 +18,7 @@ tortoise_image = (
 )
 with tortoise_image.imports():
     from elevenlabs.client import ElevenLabs
-    from elevenlabs import play, save
+    from elevenlabs import Voice, VoiceSettings
 
 @stub.cls(
     image=tortoise_image,
@@ -47,19 +47,18 @@ class TTS:
         #self.streamer = TextIteratorStreamer(self.tokenizer, skip_prompt=True, skip_special_tokens=True)
     
     @method()
-    def speak(self, text, voices=["geralt"]):
+    def speak(self, text):
         print("In TTS speak")
         client = ElevenLabs(
             api_key="53173cda2e720caa4b7d7e00b3cdb7fb", # Defaults to ELEVEN_API_KEY
         )
-        print("Current working directory:", os.getcwd())
-        voice = client.clone(
-            name="Myra",
-            description="Myra's voice", # Optional
-            files=["/audio/myra_1.wav", "/audio/myra_2.wav"],
+        audio = client.generate(
+            text=text,
+            voice=Voice(
+            voice_id='1MhKKsQCATCtDsDacg68',
+            settings=VoiceSettings(stability=0.71, similarity_boost=0.5, style=0.0, use_speaker_boost=True)
+            )
         )
-
-        audio = client.generate(text=text, voice=voice)
 
         # Concatenate the audio chunks
         audio_data = b"".join(chunk for chunk in audio)
