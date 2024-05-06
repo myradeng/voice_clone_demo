@@ -5,10 +5,10 @@ const { useState, useEffect, useCallback, useRef } = React;
 const { createMachine, assign } = XState;
 const { useMachine } = XStateReact;
 
-const SILENT_DELAY = 4000; // in milliseconds
+const SILENT_DELAY = 2000; // in milliseconds
 const CANCEL_OLD_AUDIO = false; // TODO: set this to true after cancellations don't terminate containers.
 const INITIAL_MESSAGE =
-  "Hi! I'm a language model running on Modal. Talk to me using your microphone, and remember to turn your speaker volume up!";
+  "Hi! I'm a personal AI clone of Myra Deng. Talk to me using your microphone, and remember to turn your speaker volume up!";
 
 const INDICATOR_TYPE = {
   TALKING: "talking",
@@ -18,7 +18,7 @@ const INDICATOR_TYPE = {
 };
 
 const MODELS = [
-  { id: "zephyr-7b-beta-4bit", label: "Zephyr 7B beta (4-bit)" },
+  // { id: "zephyr-7b-beta-4bit", label: "Zephyr 7B beta (4-bit)" },
   // { id: "vicuna-13b-4bit", label: "Vicuna 13B (4-bit)" },
   // { id: "alpaca-lora-7b", label: "Alpaca LORA 7B" },
 ];
@@ -117,13 +117,22 @@ function Sidebar({
   onModelSelect,
 }) {
   return (
-    <nav className="bg-zinc-900 w-[400px] flex flex-col h-full gap-2 p-2 text-gray-100 ">
-      <h1 className="text-4xl font-semibold text-center text-zinc-200 ml-auto mr-auto flex gap-2 items-center justify-center h-20">
-        QuiLLMan
-        <span className="bg-yellow-300 text-yellow-900 py-0.5 px-1.5 text-xs rounded-md uppercase">
-          Plus
-        </span>
-      </h1>
+    <nav className="bg-lime-900 w-72 flex flex-col h-full gap-2 p-2 text-gray-100">
+      <div className="flex flex-col items-center justify-center h-48">
+        <div className="w-24 h-24 rounded-full overflow-hidden">
+          <img
+            src="./myra.jpeg"
+            alt="Myra Deng"
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <h1 className="text-2xl font-semibold text-center text-zinc-200 mt-2">
+          Meeting with Myra Deng
+          <span className="bg-lime-900 text-lime-900 py-0.5 px-1.5 text-xs rounded-md uppercase ml-2">
+            AI
+          </span>
+        </h1>
+        </div>
       <div className="flex flex-row justify-evenly mb-4">
         <button
           className="flex items-center justify-center w-8 h-8 min-w-8 min-h-8 fill-zinc-300 hover:fill-zinc-50"
@@ -168,7 +177,7 @@ function Sidebar({
       >
         More coming soon!
       </button>
-      <a
+      {/* <a
         className="items-center flex justify-center mt-auto"
         href="https://modal.com"
         target="_blank"
@@ -180,7 +189,7 @@ function Sidebar({
           </span>
           <img className="h-12 w-24" src="./modal-logo.svg"></img>
         </footer>
-      </a>
+      </a> */}
     </nav>
   );
 }
@@ -258,7 +267,7 @@ function TalkingSpinner({ isUser }) {
     <div className={"flex items-center justify-center"}>
       <div
         className={
-          "talking [&>span]:" + (isUser ? "bg-yellow-500" : "bg-primary")
+          "talking [&>span]:" + (isUser ? "bg-rose-500" : "bg-primary")
         }
       >
         {" "}
@@ -288,7 +297,7 @@ function ChatMessage({ text, isUser, indicator }) {
           <div
             className={
               "flex items-center justify-center w-8 h-8 min-w-8 mih-h-8" +
-              (isUser ? " fill-yellow-500" : " fill-primary")
+              (isUser ? " fill-rose-500" : " fill-primary")
             }
           >
             {isUser ? <UserIcon /> : <BotIcon />}
@@ -301,11 +310,11 @@ function ChatMessage({ text, isUser, indicator }) {
         <div>
           <div
             className={
-              "whitespace-pre-wrap rounded-[16px] px-3 py-1.5 max-w-[600px] bg-zinc-800 border " +
+              "whitespace-pre-wrap rounded-[16px] px-3 py-1.5 max-w-[600px] bg-lime-800 border " +
               (!text
                 ? " pulse text-sm text-zinc-300 border-gray-600"
                 : isUser
-                ? " text-zinc-100 border-yellow-500"
+                ? " text-zinc-100 border-rose-500"
                 : " text-zinc-100 border-primary")
             }
           >
@@ -667,7 +676,7 @@ function App() {
           setIsMicOn={setIsMicOn}
           setIsTortoiseOn={setIsTortoiseOn}
         />
-        <main className="bg-zinc-800 w-full flex flex-col items-center gap-3 pt-6 overflow-auto">
+        <main className="bg-ground w-full flex flex-col items-center gap-3 pt-6 overflow-auto">
           {history.map((msg, i) => (
             <ChatMessage
               key={i}

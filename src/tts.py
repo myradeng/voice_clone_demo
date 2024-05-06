@@ -3,7 +3,6 @@ Calling ElevenLabs TTS API
 """
 
 import io
-import os
 from modal import Image, method, build, enter, Mount
 from pathlib import Path
 from .common import stub
@@ -28,11 +27,8 @@ with tortoise_image.imports():
     mounts=[Mount.from_local_dir(audio_path, remote_path="/audio")]
 )
 class TTS:
-    import io 
     @build()
     def download_model(self):
-        # from huggingface_hub import snapshot_download
-        # snapshot_download(MODEL_NAME)
         print("Downloading model in TTS")
         return
 
@@ -42,21 +38,17 @@ class TTS:
         #t0 = time.time()
         print("Loading model in TTS")
         return
-
-        #self.tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-        #self.streamer = TextIteratorStreamer(self.tokenizer, skip_prompt=True, skip_special_tokens=True)
     
     @method()
-    def speak(self, text):
-        print("In TTS speak")
+    def speak(self, text, elevenlabs_api_key):
         client = ElevenLabs(
-            api_key="53173cda2e720caa4b7d7e00b3cdb7fb", # Defaults to ELEVEN_API_KEY
+            api_key=elevenlabs_api_key,
         )
         audio = client.generate(
             text=text,
             voice=Voice(
-            voice_id='1MhKKsQCATCtDsDacg68',
-            settings=VoiceSettings(stability=0.71, similarity_boost=0.5, style=0.0, use_speaker_boost=True)
+            voice_id='wKk7Km7FXh9RF5T7EnrG',
+            settings=VoiceSettings(stability=0.6, similarity_boost=0.5, style=0.0, use_speaker_boost=True)
             )
         )
 

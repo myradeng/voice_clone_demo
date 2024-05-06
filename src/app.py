@@ -14,17 +14,15 @@ from .transcriber import Whisper
 from .tts import TTS
 
 static_path = Path(__file__).with_name("frontend").resolve()
-audio_path = Path(__file__).with_name("audio").resolve()
 
 PUNCTUATION = [".", "?", "!", ":", ";", "*"]
 
 
 @stub.function(
-    mounts=[Mount.from_local_dir(static_path, remote_path="/assets"), 
-            Mount.from_local_dir(audio_path, remote_path="/audio")],
+    mounts=[Mount.from_local_dir(static_path, remote_path="/assets")],
     container_idle_timeout=300,
     timeout=600,
-    secrets=[Secret.from_name("my-openai-secret"), Secret.from_name("my-lmnt-secret")]
+    secrets=[Secret.from_name("my-openai-secret"), Secret.from_name("my-elevenlabs-secret")]
 )
 @asgi_app()
 def web():
@@ -57,9 +55,9 @@ def web():
                     tts.speak.spawn("")
             return
 
-        def speak(sentence):
+        def speak(sentence, elevenlabs_api_key=None):
             if tts_enabled:
-                fc = tts.speak.spawn(sentence)
+                fc = tts.speak.spawn(sentence, elevenlabs_api_key)
                 return {
                     "type": "audio",
                     "value": fc.object_id,
@@ -74,22 +72,19 @@ def web():
         def gen():
             sentence = ""
             
-            api_key=os.environ["OPENAI_API_KEY"]
-            model_id = os.environ["LMNT_MYRA_MODEL_ID"]
-            print("Model id: ", model_id)
-            lmnt_api_key = os.environ["LMNT_API_KEY"]
-            for segment in llm.generate.remote_gen(body["input"], api_key, body["history"]):
+            openai_api_key=os.environ["OPENAI_API_KEY"]
+            elevenlabs_api_key = os.environ["ELEVENLABS_API_KEY"]
+            for segment in llm.generate.remote_gen(body["input"], openai_api_key, body["history"]):
                 yield {"type": "text", "value": segment}
                 sentence += segment
-                print("in remote gen before speak")
                 for p in PUNCTUATION:
                     if p in sentence:
                         prev_sentence, new_sentence = sentence.rsplit(p, 1)
-                        yield speak(prev_sentence)
+                        yield speak(prev_sentence, elevenlabs_api_key)
                         sentence = new_sentence
 
             if sentence:
-                yield speak(sentence)
+                yield speak(sentence, elevenlabs_api_key)
 
         def gen_serialized():
             for i in gen():
@@ -124,5 +119,4 @@ def web():
         function_call.cancel()
 
     web_app.mount("/", StaticFiles(directory="/assets", html=True))
-    web_app.mount("/", StaticFiles(directory="/audio", html=True))
     return web_app
