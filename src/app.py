@@ -55,9 +55,9 @@ def web():
                     tts.speak.spawn("")
             return
 
-        def speak(sentence, elevenlabs_api_key=None):
+        def speak(sentence, elevenlabs_api_key=None, elevenlabs_voice_id=None):
             if tts_enabled:
-                fc = tts.speak.spawn(sentence, elevenlabs_api_key)
+                fc = tts.speak.spawn(sentence, elevenlabs_api_key, elevenlabs_voice_id)
                 return {
                     "type": "audio",
                     "value": fc.object_id,
@@ -74,17 +74,18 @@ def web():
             
             openai_api_key=os.environ["OPENAI_API_KEY"]
             elevenlabs_api_key = os.environ["ELEVENLABS_API_KEY"]
+            elevenlabs_voice_id = os.environ["ELEVENLABS_VOICE_ID"]
             for segment in llm.generate.remote_gen(body["input"], openai_api_key, body["history"]):
                 yield {"type": "text", "value": segment}
                 sentence += segment
                 for p in PUNCTUATION:
                     if p in sentence:
                         prev_sentence, new_sentence = sentence.rsplit(p, 1)
-                        yield speak(prev_sentence, elevenlabs_api_key)
+                        yield speak(prev_sentence, elevenlabs_api_key, elevenlabs_voice_id)
                         sentence = new_sentence
 
             if sentence:
-                yield speak(sentence, elevenlabs_api_key)
+                yield speak(sentence, elevenlabs_api_key, elevenlabs_voice_id)
 
         def gen_serialized():
             for i in gen():

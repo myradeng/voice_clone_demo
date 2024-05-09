@@ -40,14 +40,17 @@ class TTS:
         return
     
     @method()
-    def speak(self, text, elevenlabs_api_key):
+    def speak(self, text, elevenlabs_api_key=None, elevenlabs_voice_id=None):
+        if not text: # empty string in noop case
+            return
+        
         client = ElevenLabs(
             api_key=elevenlabs_api_key,
         )
         audio = client.generate(
             text=text,
             voice=Voice(
-            voice_id='wKk7Km7FXh9RF5T7EnrG',
+            voice_id=elevenlabs_voice_id,
             settings=VoiceSettings(stability=0.6, similarity_boost=0.5, style=0.0, use_speaker_boost=True)
             )
         )
