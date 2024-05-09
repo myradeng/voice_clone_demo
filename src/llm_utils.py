@@ -1,6 +1,9 @@
+'''
+Based on: https://python.langchain.com/v0.1/docs/use_cases/question_answering/quickstart/
+'''
 
 from langchain_community.document_loaders import WebBaseLoader
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_openai import OpenAIEmbeddings
@@ -26,13 +29,15 @@ def load_data(llm, api_key, loaders=[]):
                    "https://myradeng.substack.com/p/why-chatgpt-responds-the-way-it-does?utm_source=profile&utm_medium=reader2/"])
     )
     # Load Word documents
-    word_docs = ["/docs/diversity_statement.docx",
-                   "/docs/girls_who_reign.docx",
-                #    "/docs/gsb_essays.docx",
-                   "/docs/personal_statement.docx",
-                   "/docs/resume.docx"
-                #    "/docs/sop.docx",
-                #    "/docs/stanford_intro.docx"]
+    word_docs = [
+        "/docs/diversity_statement.docx",
+        "/docs/girls_who_reign.docx",
+    #    "/docs/gsb_essays.docx",
+        "/docs/personal_statement.docx",
+        "/docs/resume.docx"
+    #    "/docs/sop.docx",
+    #    "/docs/stanford_intro.docx"
+    ]
 
     # Load each Word document using a list comprehension
     word_loaders = [Docx2txtLoader(doc) for doc in word_docs]

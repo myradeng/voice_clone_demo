@@ -6,6 +6,7 @@ please check the license before using for commercial purposes!
 """
 import os
 from pathlib import Path
+from queue import Queue
 
 from modal import Image, Secret, build, enter, method, Mount
 import time
@@ -31,11 +32,13 @@ GPT_image = (
         "openai",
         "tiktoken",
         "unstructured", 
-        "docx2txt"
+        "docx2txt",
+        "loguru",
     )
 )
 
 with GPT_image.imports():
+    from loguru import logger
     from threading import Thread
     from .llm_utils import load_data
     from langchain_openai import ChatOpenAI
@@ -65,19 +68,25 @@ class GPT:
         self.model = ChatOpenAI(model="gpt-3.5-turbo-0613", openai_api_key=api_key, max_tokens=100)
         rag_chain = load_data(self.model, api_key)
         # Run generation on separate thread to enable response streaming.
-        thread = Thread(target=self.generate_output, args=(rag_chain, input))
+        streamer = Queue()
+        thread = Thread(target=self.generate_output, args=(rag_chain, input, streamer))
         thread.start()
 
-        while thread.is_alive():
-            yield rag_chain.invoke(input)
+        timeout_start = time.time()
+        while time.time() < timeout_start + 10:
+            output = streamer.get(timeout=10)
+            if output is None:
+                break
+            yield output
 
         thread.join()
-        #print(rag_chain.invoke(input))
-        print(f"Output generated in {time.time() - t0:.2f}s")
 
-    def generate_output(self, rag_chain, input):
+        logger.info(f"Output generated in {time.time() - t0:.2f}s")
+
+    def generate_output(self, rag_chain, input, streamer):
         for token in rag_chain.stream(input):
-            self.output += token
+            streamer.put(token)
+        streamer.put(None)
 
 
 # For local testing, run `modal run -q src.llm_gpt::test_gpt --input "Where is the best sushi in New York?"`
