@@ -84,7 +84,7 @@ class GPT:
         logger.info(f"Output generated in {time.time() - t0:.2f}s")
 
     def generate_output(self, rag_chain, input, streamer):
-        for token in rag_chain.stream(input):
+        for token in rag_chain.stream({"inputs": input}, config={"configurable": {"session_id": "123"}}):
             streamer.put(token)
         streamer.put(None)
 
