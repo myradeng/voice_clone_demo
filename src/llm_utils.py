@@ -17,7 +17,7 @@ from scipy.io.wavfile import write
 from langchain_community.document_loaders import Docx2txtLoader
 
 # template = """Use the following pieces of context to answer the question at the end.
-# Respond naturally like you're having a casual conversation. 
+# Respond naturally and colloquially like you're having a casual conversation. 
 # Use two sentences maximum and keep the answer as concise as possible.
 
 # {context}
@@ -78,10 +78,9 @@ def setup_rag_chain(llm, api_key):
     )
 
     ### Answer question ###
-    qa_system_prompt = """You are an assistant for question-answering tasks. \
-    Use the following pieces of retrieved context to answer the question. \
-    If you don't know the answer, just say that you don't know. \
-    Use three sentences maximum and keep the answer concise.\
+    qa_system_prompt = """Use the following pieces of context to answer the question at the end as if you are Myra.
+    Respond naturally and colloquially like you're having a casual conversation. 
+    Use two sentences maximum and keep the answer as concise as possible\
     {context}"""
     qa_prompt = ChatPromptTemplate.from_messages(
         [

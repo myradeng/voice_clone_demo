@@ -117,7 +117,7 @@ function Sidebar({
   onModelSelect,
 }) {
   return (
-    <nav className="bg-lime-900 w-72 flex flex-col h-full gap-2 p-2 text-gray-100">
+    <nav className="bg-themeblue w-72 flex flex-col h-full gap-2 p-2 text-gray-100">
       <div className="flex flex-col items-center justify-center h-48">
         <div className="w-24 h-24 rounded-full overflow-hidden">
           <img
@@ -128,7 +128,7 @@ function Sidebar({
         </div>
         <h1 className="text-2xl font-semibold text-center text-zinc-200 mt-2">
           Meeting with Myra Deng
-          <span className="bg-lime-900 text-lime-900 py-0.5 px-1.5 text-xs rounded-md uppercase ml-2">
+          <span className="bg-themeblue text-themeblue py-0.5 px-1.5 text-xs rounded-md uppercase ml-2">
             AI
           </span>
         </h1>
@@ -162,7 +162,7 @@ function Sidebar({
           className={
             "py-2 items-center justify-center rounded-md cursor-pointer border border-white/20 hover:bg-white/10 hover:text-zinc-200 " +
             (id == selected
-              ? "bg-opacity-10 bg-primary ring-1 ring-primary text-zinc-200"
+              ? "bg-opacity-10 bg-themewhite ring-1 ring-themewhite text-zinc-200"
               : "text-zinc-400 ")
           }
           onClick={() => onModelSelect(id)}
@@ -267,7 +267,7 @@ function TalkingSpinner({ isUser }) {
     <div className={"flex items-center justify-center"}>
       <div
         className={
-          "talking [&>span]:" + (isUser ? "bg-rose-500" : "bg-primary")
+          "talking [&>span]:" + (isUser ? "bg-themepurple" : "bg-themepurple")
         }
       >
         {" "}
@@ -297,7 +297,7 @@ function ChatMessage({ text, isUser, indicator }) {
           <div
             className={
               "flex items-center justify-center w-8 h-8 min-w-8 mih-h-8" +
-              (isUser ? " fill-rose-500" : " fill-primary")
+              (isUser ? " fill-themepurple" : " fill-themepurple")
             }
           >
             {isUser ? <UserIcon /> : <BotIcon />}
@@ -310,12 +310,12 @@ function ChatMessage({ text, isUser, indicator }) {
         <div>
           <div
             className={
-              "whitespace-pre-wrap rounded-[16px] px-3 py-1.5 max-w-[600px] bg-lime-800 border " +
+              "whitespace-pre-wrap rounded-[16px] px-3 py-1.5 max-w-[600px] bg-themeblue border " +
               (!text
                 ? " pulse text-sm text-zinc-300 border-gray-600"
                 : isUser
-                ? " text-zinc-100 border-rose-500"
-                : " text-zinc-100 border-primary")
+                ? " text-zinc-100 border-themepurple"
+                : " text-zinc-100 border-themewhite")
             }
           >
             {text ||
@@ -676,7 +676,7 @@ function App() {
           setIsMicOn={setIsMicOn}
           setIsTortoiseOn={setIsTortoiseOn}
         />
-        <main className="bg-ground w-full flex flex-col items-center gap-3 pt-6 overflow-auto">
+        <main className="bg-themewhite w-full flex flex-col items-center gap-3 pt-6 overflow-auto">
           {history.map((msg, i) => (
             <ChatMessage
               key={i}
