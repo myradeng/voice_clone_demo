@@ -27,27 +27,17 @@ with tortoise_image.imports():
     mounts=[Mount.from_local_dir(audio_path, remote_path="/audio")]
 )
 class TTS:
-    @build()
-    def download_model(self):
-        print("Downloading model in TTS")
-        return
-
-
-    @enter()
-    def load_model(self):
-        #t0 = time.time()
-        print("Loading model in TTS")
-        return
+    def __init__(self, elevenlabs_api_key):
+        self.client = ElevenLabs(
+            api_key=elevenlabs_api_key,
+        )
     
     @method()
-    def speak(self, text, elevenlabs_api_key=None, elevenlabs_voice_id=None):
+    def speak(self, text, elevenlabs_voice_id=None):
         if not text: # empty string in noop case
             return
         
-        client = ElevenLabs(
-            api_key=elevenlabs_api_key,
-        )
-        audio = client.generate(
+        audio = self.client.generate(
             text=text,
             voice=Voice(
             voice_id=elevenlabs_voice_id,
