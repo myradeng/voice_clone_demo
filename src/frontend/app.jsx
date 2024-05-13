@@ -8,7 +8,7 @@ const { useMachine } = XStateReact;
 const SILENT_DELAY = 2000; // in milliseconds
 const CANCEL_OLD_AUDIO = false; // TODO: set this to true after cancellations don't terminate containers.
 const INITIAL_MESSAGE =
-  "Hi! I'm a personal AI clone of Myra Deng. Talk to me using your microphone, and remember to turn your speaker volume up!";
+  "Hi! I'm a personal AI twin of JAR. Talk to me using your microphone, and remember to turn your speaker volume up!";
 
 const INDICATOR_TYPE = {
   TALKING: "talking",
@@ -121,13 +121,13 @@ function Sidebar({
       <div className="flex flex-col items-center justify-center h-48">
         <div className="w-24 h-24 rounded-full overflow-hidden">
           <img
-            src="./myra.jpeg"
-            alt="Myra Deng"
+            src="./jar.jpeg"
+            alt="JAR"
             className="w-full h-full object-cover"
           />
         </div>
         <h1 className="text-2xl font-semibold text-center text-zinc-200 mt-2">
-          Meeting with Myra Deng
+          Meeting with JAR
           <span className="bg-lime-900 text-lime-900 py-0.5 px-1.5 text-xs rounded-md uppercase ml-2">
             AI
           </span>

@@ -74,7 +74,7 @@ def web():
             
             openai_api_key=os.environ["OPENAI_API_KEY"]
             elevenlabs_api_key = os.environ["ELEVENLABS_API_KEY"]
-            elevenlabs_voice_id = os.environ["ELEVENLABS_VOICE_ID"]
+            elevenlabs_voice_id = 'FMrd17wPZRDdHcYckwuC' #os.environ["ELEVENLABS_VOICE_ID"]
             for segment in llm.generate.remote_gen(body["input"], openai_api_key, body["history"]):
                 yield {"type": "text", "value": segment}
                 sentence += segment
