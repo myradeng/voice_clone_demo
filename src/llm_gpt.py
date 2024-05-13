@@ -40,36 +40,43 @@ GPT_image = (
 with GPT_image.imports():
     from loguru import logger
     from threading import Thread
-    from .llm_utils import load_data
+    from .llm_utils import setup_rag_chain
     from langchain_openai import ChatOpenAI
+    from langchain_community.chat_message_histories import ChatMessageHistory
+    from langchain_core.runnables.history import RunnableWithMessageHistory
 
-
-@stub.cls(image= GPT_image, 
+@stub.cls(image=GPT_image, 
           gpu="T4", 
           container_idle_timeout=300, 
           mounts=[Mount.from_local_dir(docs_path, remote_path="/docs")])
 class GPT:
-    @build()
-    def download_model(self):
-        self.web_loader = None
-        self.word_loaders = None
-        return
-
-    @enter()
-    def load_model(self):
-        return
+    def __init__(self, openai_api_key):
+        self.model = ChatOpenAI(model="gpt-3.5-turbo-0613", openai_api_key=openai_api_key, max_tokens=100)
+        self.rag_chain = setup_rag_chain(self.model, openai_api_key)
+        self.store = {}
+        self.conversational_rag_chain = RunnableWithMessageHistory(
+            self.rag_chain,
+            self.get_session_history,
+            input_messages_key="input",
+            history_messages_key="chat_history",
+            output_messages_key="answer",
+        )
     
+    def get_session_history(self, session_id: str):
+        if session_id not in self.store:
+            self.store[session_id] = ChatMessageHistory()
+        return self.store[session_id]
+
     @method()
-    async def generate(self, input, api_key=None, history=[]):
+    async def generate(self, input):
         if input == "":
             return
 
         t0 = time.time()
-        self.model = ChatOpenAI(model="gpt-3.5-turbo-0613", openai_api_key=api_key, max_tokens=100)
-        rag_chain = load_data(self.model, api_key)
+        
         # Run generation on separate thread to enable response streaming.
         streamer = Queue()
-        thread = Thread(target=self.generate_output, args=(rag_chain, input, streamer))
+        thread = Thread(target=self.generate_output, args=(self.conversational_rag_chain, input, streamer))
         thread.start()
 
         timeout_start = time.time()
@@ -84,14 +91,19 @@ class GPT:
         logger.info(f"Output generated in {time.time() - t0:.2f}s")
 
     def generate_output(self, rag_chain, input, streamer):
-        for token in rag_chain.stream(input):
-            streamer.put(token)
+        for token in rag_chain.stream({"input": input}, config={"configurable": {"session_id": "123"}}):
+            if 'answer' in token:
+                streamer.put(token['answer'])
         streamer.put(None)
 
 
 # For local testing, run `modal run -q src.llm_gpt::test_gpt --input "Where is the best sushi in New York?"`
-@stub.function(secrets=[Secret.from_name("my-openai-secret")])
+@stub.function(image=GPT_image, secrets=[Secret.from_name("my-openai-secret")])
 def test_gpt(input: str):
-    model = GPT()
-    for val in model.generate.remote_gen(input, api_key=os.environ["OPENAI_API_KEY"]):
+    input1 = 'Where did you go to college?'
+    model = GPT(os.environ["OPENAI_API_KEY"])
+    for val in model.generate.remote_gen(input1):
+        print(val, end="", flush=True)
+    input2 = 'Could you repeat the answer?'
+    for val in model.generate.remote_gen(input2):
         print(val, end="", flush=True)
