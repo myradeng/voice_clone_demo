@@ -37,11 +37,11 @@ def setup_rag_chain(llm, api_key):
     word_docs = [
         "/docs/diversity_statement.docx",
         "/docs/girls_who_reign.docx",
-    #    "/docs/gsb_essays.docx",
+        "/docs/gsb_essays.docx",
         "/docs/personal_statement.docx",
-        "/docs/resume.docx"
-    #    "/docs/sop.docx",
-    #    "/docs/stanford_intro.docx"
+        "/docs/resume.docx",
+        "/docs/sop.docx",
+        "/docs/stanford_musings.docx"
     ]
 
     # Load each Word document using a list comprehension
@@ -78,7 +78,7 @@ def setup_rag_chain(llm, api_key):
     )
 
     ### Answer question ###
-    qa_system_prompt = """Use the following pieces of context to answer the question at the end as if you are Myra.
+    qa_system_prompt = """Use the following pieces of context to answer the question at the end as if you are Myra Deng.
     Respond naturally and colloquially like you're having a casual conversation. 
     Use two sentences maximum and keep the answer as concise as possible\
     {context}"""
