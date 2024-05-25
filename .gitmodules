@@ -1,0 +1,3 @@
+[submodule "src/VoiceCraft"]
+	path = src/VoiceCraft
+	url = https://github.com/jasonppy/VoiceCraft.git
