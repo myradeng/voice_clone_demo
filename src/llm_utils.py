@@ -26,23 +26,39 @@ from langchain_community.document_loaders import Docx2txtLoader
 
 # Helpful Answer:"""
 
-def setup_rag_chain(llm, api_key):
+def setup_rag_chain(llm, api_key, person='Myra'):
 
-    # Load web blog posts
-    web_loader = WebBaseLoader(
-        web_paths=(["https://www.unusual.vc/post/andy-rachleff-on-coining-the-term-product-market-fit",
-                   "https://myradeng.substack.com/p/why-chatgpt-responds-the-way-it-does?utm_source=profile&utm_medium=reader2/"])
-    )
-    # Load Word documents
-    word_docs = [
-        "/docs/diversity_statement.docx",
-        "/docs/girls_who_reign.docx",
-    #    "/docs/gsb_essays.docx",
-        "/docs/personal_statement.docx",
-        "/docs/resume.docx"
-    #    "/docs/sop.docx",
-    #    "/docs/stanford_intro.docx"
-    ]
+    if person == 'Myra':
+        # Load web blog posts
+        web_loader = WebBaseLoader(
+            web_paths=(["https://www.unusual.vc/post/andy-rachleff-on-coining-the-term-product-market-fit",
+                    "https://myradeng.substack.com/p/why-chatgpt-responds-the-way-it-does?utm_source=profile&utm_medium=reader2/"])
+        )
+        # Load Word documents
+        word_docs = [
+            "/docs/myra/diversity_statement.docx",
+            "/docs/myra/girls_who_reign.docx",
+        #    "/docs/myra/gsb_essays.docx",
+            "/docs/myra/personal_statement.docx",
+            "/docs/myra/resume.docx"
+        #    "/docs/myra/sop.docx",
+        #    "/docs/myra/stanford_intro.docx"
+        ]
+    elif person == 'George':
+        web_loader = WebBaseLoader(
+            web_paths=([
+                "https://lostgeorge.substack.com/p/humanity-and-in-domain-behavior",
+            ])
+        )
+        word_docs = [
+            "/docs/george/essay_1.pdf",
+            "/docs/george/essay_2.pdf",
+            "/docs/george/essay_3.pdf",
+            "/docs/george/essay_4.pdf",
+            "/docs/george/dump.txt",
+            "/docs/george/resume.docx",
+        ]
+        
 
     # Load each Word document using a list comprehension
     word_loaders = [Docx2txtLoader(doc) for doc in word_docs]

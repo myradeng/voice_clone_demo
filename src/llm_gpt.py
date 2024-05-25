@@ -50,9 +50,9 @@ with GPT_image.imports():
           container_idle_timeout=300, 
           mounts=[Mount.from_local_dir(docs_path, remote_path="/docs")])
 class GPT:
-    def __init__(self, openai_api_key):
+    def __init__(self, openai_api_key, person='Myra'):
         self.model = ChatOpenAI(model="gpt-3.5-turbo-0613", openai_api_key=openai_api_key, max_tokens=100)
-        self.rag_chain = setup_rag_chain(self.model, openai_api_key)
+        self.rag_chain = setup_rag_chain(self.model, openai_api_key, person)
         self.store = {}
         self.conversational_rag_chain = RunnableWithMessageHistory(
             self.rag_chain,
