@@ -16,7 +16,7 @@ from .tts import TTS
 static_path = Path(__file__).with_name("frontend").resolve()
 
 PUNCTUATION = [".", "?", "!", ":", ";", "*"]
-
+PERSON = "  Myra"
 
 @stub.function(
     mounts=[Mount.from_local_dir(static_path, remote_path="/assets")],
@@ -32,7 +32,7 @@ def web():
 
     web_app = FastAPI()
     transcriber = Whisper()
-    llm = GPT(os.environ["OPENAI_API_KEY"])
+    llm = GPT(os.environ["OPENAI_API_KEY"], person=PERSON)
     tts = TTS(os.environ["ELEVENLABS_API_KEY"])
 
     @web_app.post("/transcribe")
