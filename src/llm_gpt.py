@@ -46,7 +46,7 @@ with GPT_image.imports():
     from langchain_core.runnables.history import RunnableWithMessageHistory
 
 @stub.cls(image=GPT_image, 
-          gpu="T4", 
+        #   gpu="T4",
           container_idle_timeout=300, 
           mounts=[Mount.from_local_dir(docs_path, remote_path="/docs")])
 class GPT:
