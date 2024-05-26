@@ -12,7 +12,12 @@ audio_path = Path(__file__).with_name("audio").resolve()
 
 tortoise_image = (
     Image.debian_slim(python_version="3.10")
-    .apt_install("ffmpeg", "git", "espeak-ng")
+    .apt_install(
+        "ffmpeg",
+        "git",
+        "espeak-ng",
+        "python3-pyaudio",
+    )
     .pip_install(
         # "git+https://github.com/facebookresearch/audiocraft.git@c5157b5bf14bf83449c17ea1eeb66c19fb4bc7f0#egg=audiocraft",
         "git+https://github.com/dillionverma/audiocraft",
@@ -24,6 +29,7 @@ tortoise_image = (
         "datasets==2.16.0",
         "torchmetrics==0.11.1",
         "huggingface_hub==0.22.2",
+        "sounddevice"
     )
 )
 with tortoise_image.imports():
@@ -72,7 +78,7 @@ class TTS:
         device = torch.device('cuda')
         self.device = device
 
-        voicecraft_name = "830M_TTSEnhanced.pth"
+        voicecraft_name = "330M_TTSEnhanced.pth"
         self.model = voicecraft.VoiceCraft.from_pretrained(f"pyp1/VoiceCraft_{voicecraft_name.replace('.pth', '')}")
         self.model.to(device)
         self.config = vars(self.model.args)
@@ -98,10 +104,11 @@ class TTS:
                 converted_wav_tmp.name + ".wav", format="wav"
             ).export(wav, format="wav")
 
+        # return wav.read().decode('utf-8', errors='ignore')
         return wav
 
     @method()
-    def speak(self, text, **kwargs):
+    def speak(self, text, *args, **kwargs):
         if not text: # empty string in noop case
             return
 
@@ -123,15 +130,20 @@ class TTS:
             decode_config=self.decode_config,
             prompt_end_frame=num_frames,
         )
-        print(concated_audio.shape, gen_audio.shape, gen_audio[0].shape)
+        # print(concated_audio.shape, gen_audio.shape, gen_audio[0].shape)
         audio_blob = self.process_synthesis_result(gen_audio[0].cpu())
 
         return audio_blob
+        # return gen_audio[0].cpu().numpy()
 
-# For local testing, run `modal run -q src.tts_voicecraft::test_voicecraft --text "Where is the best sushi in New York?"`
-@stub.function(image=tortoise_image)
+# For local testing, run `modal run src.tts_voicecraft::test_voicecraft --text "Where is the best sushi in New York?"`
+@stub.function(image=tortoise_image, mounts=[Mount.from_local_dir(audio_path, remote_path="/audio")])
 def test_voicecraft(text: str):
-    tts = TTS()
+    # from pydub.playback import play
+    # import sounddevice as sd
 
-    a = tts.speak.remote(text)
+    tts = TTS()
+    audio_bytes = tts.speak.remote(text)
+    # sd.play(audio_bytes, 44100)
+
 
