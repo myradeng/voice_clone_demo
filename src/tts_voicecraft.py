@@ -97,7 +97,7 @@ class TTS:
             torchaudio.save(
                 converted_wav_tmp.name + ".wav",
                 result,
-                24000,
+                16000,
             )
             wav = io.BytesIO()
             _ = pydub.AudioSegment.from_file(
