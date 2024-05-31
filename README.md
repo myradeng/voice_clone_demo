@@ -1,3 +1,14 @@
+# Expressive Voice Agents
+
+To get the VoiceCraft submodule, do
+```
+git submodule update
+```
+The way VoiceCraft is coded right now requies manually downloading the encodec function, so do `wget https://huggingface.co/pyp1/VoiceCraft/resolve/main/encodec_4cb2048_giga.th` and make sure the file is in the directory: `VoiceCraft/pretrained_models/`
+
+
+
+
 # QuiLLMan: Voice Chat with LLMs
 
 A complete chat app that transcribes audio in real-time, streams back a response from a language model, and synthesizes this response as natural-sounding speech.

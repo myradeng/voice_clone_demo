@@ -11,12 +11,13 @@ from modal import Mount, asgi_app, Secret
 from .common import stub
 from .llm_gpt import GPT
 from .transcriber import Whisper
-from .tts import TTS
+# from .tts_elevenlabs import TTS as TTSElevenLabs
+from .tts_voicecraft import TTS as TTSVoiceCraft
 
 static_path = Path(__file__).with_name("frontend").resolve()
 
 PUNCTUATION = [".", "?", "!", ":", ";", "*"]
-
+PERSON = "Myra"
 
 @stub.function(
     mounts=[Mount.from_local_dir(static_path, remote_path="/assets")],
@@ -32,8 +33,9 @@ def web():
 
     web_app = FastAPI()
     transcriber = Whisper()
-    llm = GPT(os.environ["OPENAI_API_KEY"])
-    tts = TTS(os.environ["ELEVENLABS_API_KEY"])
+    llm = GPT(os.environ["OPENAI_API_KEY"], person=PERSON)
+    # tts = TTSElevenLabs(os.environ["ELEVENLABS_API_KEY"])
+    tts = TTSVoiceCraft()
 
     @web_app.post("/transcribe")
     async def transcribe(request: Request):
@@ -58,9 +60,11 @@ def web():
         def speak(sentence, elevenlabs_voice_id=None):
             if tts_enabled:
                 fc = tts.speak.spawn(sentence, elevenlabs_voice_id)
+                # fc = tts.speak.remote(sentence, elevenlabs_voice_id)
                 return {
                     "type": "audio",
                     "value": fc.object_id,
+                    # "value": fc,
                 }
             else:
                 print("Not tts")
@@ -87,7 +91,7 @@ def web():
 
         def gen_serialized():
             for i in gen():
-                yield json.dumps(i) + "\x1e"
+                yield json.dumps(i, ensure_ascii=False) + "\x1e"
 
         return StreamingResponse(
             gen_serialized(),
@@ -100,7 +104,7 @@ def web():
         
         function_call = FunctionCall.from_id(call_id)
         try:
-            result = function_call.get(timeout=30)
+            result = function_call.get(timeout=120)
         except TimeoutError:
             return Response(status_code=202)
 
