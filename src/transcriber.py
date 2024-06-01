@@ -61,8 +61,7 @@ def load_audio(data: bytes, sr: int = 16000):
     except ffmpeg.Error as e:
         raise RuntimeError(f"Failed to load audio: {e.stderr.decode()}") from e
 
-    return np.frombuffer(out, np.float32).flatten(), fp.name
-
+    return np.frombuffer(out, np.float32).flatten()
 
 @stub.cls(
     gpu="A10G",
@@ -88,10 +87,18 @@ class Whisper:
         audio_data: bytes,
     ):
         t0 = time.time()
-        np_array, fp_name = load_audio(audio_data)
-        # This doesn't work yet, is throwing an error about unable to read data from fp_name 
-        # rec_result = self.emotion2vec_pipeline(fp_name, output_dir="./outputs", granularity="utterance", extract_embedding=True)
-        # print("Rec result: ", rec_result)
+        np_array = load_audio(audio_data)
+        rec_result = self.emotion2vec_pipeline(np_array, output_dir="./outputs", granularity="utterance", extract_embedding=True)
+        top_emotion = None
+        emotion_dict = rec_result[0]
+        if emotion_dict['scores']:
+            # Find the index of the maximum score
+            max_score_index = emotion_dict['scores'].index(max(emotion_dict['scores']))
+            
+            # Get the corresponding emotion label using the index
+            top_emotion = emotion_dict['labels'][max_score_index]
+            
+            print("Top scored emotion:", top_emotion)
         result = self.model.transcribe(np_array, language="en", fp16=self.use_gpu)  # type: ignore
         print(f"Transcribed in {time.time() - t0:.2f}s")
 
