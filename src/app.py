@@ -11,7 +11,7 @@ from modal import Mount, asgi_app, Secret
 from .common import stub
 from .llm_gpt import GPT
 from .transcriber import Whisper
-# from .tts_elevenlabs import TTS as TTSElevenLabs
+#from .tts_elevenlabs import TTS as TTSElevenLabs
 from .tts_voicecraft import TTS as TTSVoiceCraft
 
 static_path = Path(__file__).with_name("frontend").resolve()
@@ -34,7 +34,7 @@ def web():
     web_app = FastAPI()
     transcriber = Whisper()
     llm = GPT(os.environ["OPENAI_API_KEY"], person=PERSON)
-    # tts = TTSElevenLabs(os.environ["ELEVENLABS_API_KEY"])
+    #tts = TTSElevenLabs(os.environ["ELEVENLABS_API_KEY"])
     tts = TTSVoiceCraft()
 
     @web_app.post("/transcribe")

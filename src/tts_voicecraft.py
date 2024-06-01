@@ -70,7 +70,7 @@ class TTS:
             "codec_audio_sr": 16000,
             "codec_sr": 50,
             "silence_tokens": [1388, 1898, 131],
-            "sample_batch_size": 3,
+            "sample_batch_size": 2,
         }
     
     @enter()
@@ -78,7 +78,7 @@ class TTS:
         device = torch.device('cuda')
         self.device = device
 
-        voicecraft_name = "330M_TTSEnhanced.pth"
+        voicecraft_name = "giga330M.pth"
         self.model = voicecraft.VoiceCraft.from_pretrained(f"pyp1/VoiceCraft_{voicecraft_name.replace('.pth', '')}")
         self.model.to(device)
         self.config = vars(self.model.args)

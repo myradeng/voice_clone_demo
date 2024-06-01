@@ -6,7 +6,6 @@ import tempfile
 import time
 
 from modal import Image, method, enter
-
 from .common import stub
 
 MODEL_NAME = "base.en"
@@ -17,13 +16,16 @@ def download_model():
 
     whisper.load_model(MODEL_NAME)
 
-
 transcriber_image = (
     Image.debian_slim(python_version="3.10.8")
     .apt_install("git", "ffmpeg")
     .pip_install(
         "https://github.com/openai/whisper/archive/v20230314.tar.gz",
         "ffmpeg-python",
+        "funasr", 
+        "modelscope",
+        "torch",
+        "torchaudio"
     )
     .run_function(download_model)
 )
@@ -36,6 +38,7 @@ def load_audio(data: bytes, sr: int = 16000):
     try:
         fp = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
         fp.write(data)
+        
         fp.close()
         # This launches a subprocess to decode audio while down-mixing and resampling as necessary.
         # Requires the ffmpeg CLI and `ffmpeg-python` package to be installed.
@@ -58,7 +61,7 @@ def load_audio(data: bytes, sr: int = 16000):
     except ffmpeg.Error as e:
         raise RuntimeError(f"Failed to load audio: {e.stderr.decode()}") from e
 
-    return np.frombuffer(out, np.float32).flatten()
+    return np.frombuffer(out, np.float32).flatten(), fp.name
 
 
 @stub.cls(
@@ -71,19 +74,27 @@ class Whisper:
     def load_model(self):
         import torch
         import whisper
+        from modelscope.pipelines import pipeline
+        from modelscope.utils.constant import Tasks
 
         self.use_gpu = torch.cuda.is_available()
         device = "cuda" if self.use_gpu else "cpu"
         self.model = whisper.load_model(MODEL_NAME, device=device)
-
+        self.emotion2vec_pipeline = pipeline(task=Tasks.emotion_recognition, model="iic/emotion2vec_plus_base")
+    
     @method()
     def transcribe_segment(
         self,
         audio_data: bytes,
     ):
         t0 = time.time()
-        np_array = load_audio(audio_data)
+        np_array, fp_name = load_audio(audio_data)
+        # This doesn't work yet, is throwing an error about unable to read data from fp_name 
+        # rec_result = self.emotion2vec_pipeline(fp_name, output_dir="./outputs", granularity="utterance", extract_embedding=True)
+        # print("Rec result: ", rec_result)
         result = self.model.transcribe(np_array, language="en", fp16=self.use_gpu)  # type: ignore
         print(f"Transcribed in {time.time() - t0:.2f}s")
 
         return result
+    
+
