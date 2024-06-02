@@ -108,9 +108,11 @@ class TTS:
         return wav
 
     @method()
-    def speak(self, text, *args, **kwargs):
+    def speak(self, text, voice_id=None, top_emotion=None, *args, **kwargs):
         if not text: # empty string in noop case
             return
+    
+        print("in speak top emotion: ", top_emotion)
 
         audio_prompt = '/audio/myra_1.wav'
         text_with_prompt = 'Hi, I\'m just testing this out to get some good quality training data on my conversational voice,' + \

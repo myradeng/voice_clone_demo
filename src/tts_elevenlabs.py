@@ -33,7 +33,7 @@ class TTS:
         )
     
     @method()
-    def speak(self, text, elevenlabs_voice_id=None):
+    def speak(self, text, elevenlabs_voice_id=None, top_emotion=None):
         if not text: # empty string in noop case
             return
         

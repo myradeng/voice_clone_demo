@@ -41,13 +41,13 @@ def web():
     async def transcribe(request: Request):
         bytes = await request.body()
         result = transcriber.transcribe_segment.remote(bytes)
-        return result["text"]
+        return {"text": result["text"], "top_emotion": result["top_emotion"]}
 
     @web_app.post("/generate")
     async def generate(request: Request):
         body = await request.json()
         tts_enabled = True
-        print("In app.py generate() tts_enabled", body["tts"])
+        top_emotion = body.get("top_emotion")
 
         if "noop" in body:
             llm.generate.spawn("")
@@ -59,7 +59,7 @@ def web():
 
         def speak(sentence, elevenlabs_voice_id=None):
             if tts_enabled:
-                fc = tts.speak.spawn(sentence, elevenlabs_voice_id)
+                fc = tts.speak.spawn(sentence, elevenlabs_voice_id, top_emotion)
                 # fc = tts.speak.remote(sentence, elevenlabs_voice_id)
                 return {
                     "type": "audio",

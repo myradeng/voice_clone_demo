@@ -102,6 +102,6 @@ class Whisper:
         result = self.model.transcribe(np_array, language="en", fp16=self.use_gpu)  # type: ignore
         print(f"Transcribed in {time.time() - t0:.2f}s")
 
-        return result
+        return {"text": result["text"], "top_emotion": top_emotion}
     
 

@@ -431,13 +431,17 @@ async function fetchTranscript(buffer) {
     console.error("Error occurred during transcription: " + response.status);
   }
 
-  return await response.json();
+  const data = await response.json();
+  return {
+    text: data.text,
+    top_emotion: data.top_emotion,
+  };
 }
 
-async function* fetchGeneration(noop, input, history, isTortoiseOn) {
+async function* fetchGeneration(noop, input, history, isTortoiseOn, topEmotion) {
   const body = noop
     ? { noop: true, tts: isTortoiseOn }
-    : { input, history, tts: isTortoiseOn };
+    : { input, history, tts: isTortoiseOn, top_emotion: topEmotion };
 
   const response = await fetch("/generate", {
     method: "POST",
@@ -494,11 +498,11 @@ function App() {
   useEffect(() => {
     const subscription = service.subscribe((state, event) => {
       console.log("Transitioned to state:", state.value, state.context);
-
-      if (event && event.type == "TRANSCRIPT_RECVD") {
-        setFullMessage(
-          (m) => m + (m ? event.transcript : event.transcript.trimStart())
-        );
+      if (event && event.type === "TRANSCRIPT_RECVD") {
+        const { text, top_emotion } = event.data;
+        setFullMessage((m) => m + (m ? text : text.trim()));
+        // Handle the top_emotion as needed
+        console.log("Top emotion:", top_emotion);
       }
     });
 
@@ -571,9 +575,9 @@ function App() {
         send("SEGMENT_RECVD");
       }
       // TODO: these can get reordered
-      const data = await fetchTranscript(buffer);
+      const { text, top_emotion } = await fetchTranscript(buffer);
       if (buffer.length) {
-        send({ type: "TRANSCRIPT_RECVD", transcript: data });
+        send({ type: "TRANSCRIPT_RECVD", data: { text, top_emotion }});
       }
     },
     [history]
