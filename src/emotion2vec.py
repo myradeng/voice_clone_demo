@@ -32,6 +32,9 @@ e2v_image = (
     )
     .run_function(download_model)
 )
+with e2v_image.imports():
+    from funasr import AutoModel
+    import numpy as np
 
 @stub.cls(
     gpu="A10G",
@@ -46,9 +49,6 @@ class Emotion2Vec:
 
     @enter()
     def load_model(self):
-        from funasr import AutoModel
-        import numpy as np
-
         self.emotion_vectors = np.load(f'/e2v_data/{self.person}_e2v.npy')
         self.emotion_model = AutoModel(model="iic/emotion2vec_base_finetuned")
     
@@ -57,8 +57,8 @@ class Emotion2Vec:
         self,
         audio_data: bytes,
     ):
-        import numpy as np
-        
+        if audio_data is None or len(audio_data) == 0:
+            return
         t0 = time.time()
         np_array = load_audio(audio_data)
         rec_result = self.emotion_model.generate(np_array, output_dir="./outputs", granularity="utterance", extract_embedding=True)

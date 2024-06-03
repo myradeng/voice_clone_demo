@@ -19,6 +19,7 @@ static_path = Path(__file__).with_name("frontend").resolve()
 
 PUNCTUATION = [".", "?", "!", ":", ";", "*"]
 PERSON = "George"
+# PERSON = "Myra"
 
 @stub.function(
     mounts=[Mount.from_local_dir(static_path, remote_path="/assets")],
@@ -56,11 +57,11 @@ def web():
 
         if "noop" in body:
             llm.generate.spawn("")
-            tts.speak.spawn("")
+            e2v.get_emotion_rag.spawn(None)
             # Warm up 3 containers for now.
-            # if tts_enabled:
-            #     for _ in range(3):
-            #         tts.speak.spawn("")
+            if tts_enabled:
+                for _ in range(3):
+                    tts.speak.spawn("")
             return
 
         def speak(sentence, elevenlabs_voice_id=None):
@@ -84,11 +85,11 @@ def web():
             for segment in llm.generate.remote_gen(body["input"]):
                 yield {"type": "text", "value": segment}
                 sentence += segment
-                # for p in PUNCTUATION:
-                #     if p in sentence:
-                #         prev_sentence, new_sentence = sentence.rsplit(p, 1)
-                #         yield speak(prev_sentence, elevenlabs_voice_id)
-                #         sentence = new_sentence
+                for p in PUNCTUATION:
+                    if p in sentence:
+                        prev_sentence, new_sentence = sentence.rsplit(p, 1)
+                        yield speak(prev_sentence, elevenlabs_voice_id)
+                        sentence = new_sentence
 
             if sentence:
                 yield speak(sentence, elevenlabs_voice_id)

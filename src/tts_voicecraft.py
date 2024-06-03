@@ -12,6 +12,12 @@ from .common import stub
 from .constants import AUDIO_RAG_TEXT, EMOTION_TO_IDX
 
 audio_path = Path(__file__).with_name("audio").resolve()
+voicecraft_name = "330M_TTSEnhanced.pth"
+
+def load_model():
+    from models import voicecraft
+
+    voicecraft.VoiceCraft.from_pretrained(f"pyp1/VoiceCraft_{voicecraft_name.replace('.pth', '')}")
 
 tortoise_image = (
     Image.debian_slim(python_version="3.10")
@@ -31,6 +37,7 @@ tortoise_image = (
         "huggingface_hub==0.22.2",
         "sounddevice"
     )
+    .run_function(load_model)
 )
 with tortoise_image.imports():
     import sys, os
@@ -79,7 +86,6 @@ class TTS:
         device = torch.device('cuda')
         self.device = device
 
-        voicecraft_name = "giga330M.pth"
         self.model = voicecraft.VoiceCraft.from_pretrained(f"pyp1/VoiceCraft_{voicecraft_name.replace('.pth', '')}")
         self.model.to(device)
         self.config = vars(self.model.args)
