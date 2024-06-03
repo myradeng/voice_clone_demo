@@ -14,7 +14,7 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from scipy.io.wavfile import write
-from langchain_community.document_loaders import Docx2txtLoader
+from langchain_community.document_loaders import Docx2txtLoader, PyPDFLoader, TextLoader
 
 # template = """Use the following pieces of context to answer the question at the end.
 # Respond naturally and colloquially like you're having a casual conversation. 
@@ -44,6 +44,8 @@ def setup_rag_chain(llm, api_key, person='Myra'):
         #    "/docs/myra/sop.docx",
         #    "/docs/myra/stanford_intro.docx"
         ]
+        pdfs = []
+        text_files = []
     elif person == 'George':
         web_loader = WebBaseLoader(
             web_paths=([
@@ -51,22 +53,34 @@ def setup_rag_chain(llm, api_key, person='Myra'):
             ])
         )
         word_docs = [
+            "/docs/george/resume.docx", 
+        ]
+        pdfs = [
             "/docs/george/essay_1.pdf",
             "/docs/george/essay_2.pdf",
             "/docs/george/essay_3.pdf",
             "/docs/george/essay_4.pdf",
+            "/docs/george/Stanford SOP 1.pdf",
+        ]
+        text_files = [
             "/docs/george/dump.txt",
-            "/docs/george/resume.docx",
         ]
         
 
     # Load each Word document using a list comprehension
     word_loaders = [Docx2txtLoader(doc) for doc in word_docs]
+    pdf_loaders = [PyPDFLoader(doc) for doc in pdfs]
+    text_loaders = [TextLoader(doc) for doc in text_files]
 
     # Combine the loaded documents from web and Word sources
     docs = web_loader.load()
+
     for loader in word_loaders:
-         docs.extend(loader.load())
+        docs.extend(loader.load())
+    for loader in pdf_loaders:
+        docs.extend(loader.load())
+    for loader in text_loaders:
+        docs.extend(loader.load())
 
     print(str(len(docs)) + " total docs loaded in llm_utils.py")
     

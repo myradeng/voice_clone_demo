@@ -34,6 +34,7 @@ GPT_image = (
         "unstructured", 
         "docx2txt",
         "loguru",
+        "pypdf",
     )
 )
 

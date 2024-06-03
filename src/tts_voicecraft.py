@@ -9,6 +9,7 @@ from modal.functions import FunctionCall
 from fastapi.responses import Response
 from pathlib import Path
 from .common import stub
+from .constants import AUDIO_RAG_TEXT, EMOTION_TO_IDX
 
 audio_path = Path(__file__).with_name("audio").resolve()
 
@@ -21,12 +22,9 @@ tortoise_image = (
         "python3-pyaudio",
     )
     .pip_install(
-        # "git+https://github.com/facebookresearch/audiocraft.git@c5157b5bf14bf83449c17ea1eeb66c19fb4bc7f0#egg=audiocraft",
         "git+https://github.com/dillionverma/audiocraft",
         "xformers",
         "torchaudio",
-        # "torchaudio==2.0.2",
-        # "torch==2.0.1",
         "phonemizer==3.2.1",
         "datasets==2.16.0",
         "torchmetrics==0.11.1",
@@ -62,7 +60,7 @@ with tortoise_image.imports():
     mounts=[Mount.from_local_dir(audio_path, remote_path="/audio")]
 )
 class TTS:
-    def __init__(self):
+    def __init__(self, person):
         self.decode_config = {
             'top_k': 0,
             'top_p': 0.9,
@@ -74,6 +72,7 @@ class TTS:
             "silence_tokens": [1388, 1898, 131],
             "sample_batch_size": 2,
         }
+        self.person = person
     
     @enter()
     def load_model(self):
@@ -113,8 +112,8 @@ class TTS:
     def speak(self, text, voice_id=None, top_emotion=None, *args, **kwargs):
         if not text: # empty string in noop case
             return
-        if top_emotion == -1: # default
-            pass
+        if top_emotion == -1: # default, should never happen but in case
+            top_emotion = f'/audio/{self.person}_neutral_1.wav'
         else:
             fc = FunctionCall.from_id(top_emotion)
             try:
@@ -123,9 +122,13 @@ class TTS:
                 return Response(status_code=202)
             print("in speak top emotion: ", top_emotion)
 
-        audio_prompt = '/audio/myra_1.wav'
-        text_with_prompt = 'Hi, I\'m just testing this out to get some good quality training data on my conversational voice,' + \
-            ' and how I would sound if I were having a coffee chat with you.' + text
+        audio_prompt = top_emotion
+        emotion_type = top_emotion.split('_')[-2]
+        type_idx = EMOTION_TO_IDX[emotion_type]
+        sample_idx = int(top_emotion.split('_')[-1].split('.')[0]) - 1
+
+        pre_prompt_text = AUDIO_RAG_TEXT[type_idx][sample_idx]
+        text_with_prompt = pre_prompt_text + ' ' + text
         info = torchaudio.info(audio_prompt)
         num_frames = info.num_frames
 

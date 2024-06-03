@@ -12,10 +12,8 @@ MODEL_NAME = "base.en"
 
 def download_model():
     import whisper
-    # from funasr import AutoModel
 
     whisper.load_model(MODEL_NAME)
-    # AutoModel(model="iic/emotion2vec_base_finetuned")
 
 
 transcriber_image = (
@@ -75,14 +73,10 @@ class Whisper:
     def load_model(self):
         import torch
         import whisper
-        # from funasr import AutoModel
-        # from modelscope.pipelines import pipeline
-        # from modelscope.utils.constant import Tasks
 
         self.use_gpu = torch.cuda.is_available()
         device = "cuda" if self.use_gpu else "cpu"
         self.model = whisper.load_model(MODEL_NAME, device=device)
-        # self.emotion_model = AutoModel(model="iic/emotion2vec_base_finetuned")
     
     @method()
     def transcribe_segment(
@@ -91,21 +85,8 @@ class Whisper:
     ):
         t0 = time.time()
         np_array = load_audio(audio_data)
-        # rec_result = self.emotion_model.generate(np_array, output_dir="./outputs", granularity="utterance", extract_embedding=False)
-        # top_emotion = None
-        # emotion_dict = rec_result[0]
-        # if emotion_dict['scores']:
-        #     # Find the index of the maximum score
-        #     max_score_index = emotion_dict['scores'].index(max(emotion_dict['scores']))
-            
-        #     # Get the corresponding emotion label using the index
-        #     top_emotion = emotion_dict['labels'][max_score_index]
-        #     top_emotion = top_emotion.split('/')[-1]
-            
-        #     print("Top scored emotion:", top_emotion)
+
         result = self.model.transcribe(np_array, language="en", fp16=self.use_gpu)  # type: ignore
         print(f"Transcribed in {time.time() - t0:.2f}s")
-        return result
-        # return {"text": result["text"], "top_emotion": top_emotion}
-    
+        return result    
 

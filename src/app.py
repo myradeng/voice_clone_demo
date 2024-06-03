@@ -18,7 +18,7 @@ from .emotion2vec import Emotion2Vec
 static_path = Path(__file__).with_name("frontend").resolve()
 
 PUNCTUATION = [".", "?", "!", ":", ";", "*"]
-PERSON = "Myra"
+PERSON = "George"
 
 @stub.function(
     mounts=[Mount.from_local_dir(static_path, remote_path="/assets")],
@@ -36,8 +36,8 @@ def web():
     transcriber = Whisper()
     llm = GPT(os.environ["OPENAI_API_KEY"], person=PERSON)
     #tts = TTSElevenLabs(os.environ["ELEVENLABS_API_KEY"])
-    tts = TTSVoiceCraft()
-    e2v = Emotion2Vec()
+    tts = TTSVoiceCraft(person=PERSON.lower())
+    e2v = Emotion2Vec(person=PERSON.lower())
 
     @web_app.post("/transcribe")
     async def transcribe(request: Request):
