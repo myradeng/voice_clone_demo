@@ -13,6 +13,7 @@ from .llm_gpt import GPT
 from .transcriber import Whisper
 #from .tts_elevenlabs import TTS as TTSElevenLabs
 from .tts_voicecraft import TTS as TTSVoiceCraft
+from .emotion2vec import Emotion2Vec
 
 static_path = Path(__file__).with_name("frontend").resolve()
 
@@ -36,12 +37,16 @@ def web():
     llm = GPT(os.environ["OPENAI_API_KEY"], person=PERSON)
     #tts = TTSElevenLabs(os.environ["ELEVENLABS_API_KEY"])
     tts = TTSVoiceCraft()
+    e2v = Emotion2Vec()
 
     @web_app.post("/transcribe")
     async def transcribe(request: Request):
         bytes = await request.body()
+        if len(bytes) == 0:
+            return {"text": "", "top_emotion": -1}
+        emotion_rag_fc = e2v.get_emotion_rag.spawn(bytes)
         result = transcriber.transcribe_segment.remote(bytes)
-        return {"text": result["text"], "top_emotion": result["top_emotion"]}
+        return {"text": result["text"], "top_emotion": emotion_rag_fc.object_id}
 
     @web_app.post("/generate")
     async def generate(request: Request):
@@ -51,20 +56,19 @@ def web():
 
         if "noop" in body:
             llm.generate.spawn("")
+            tts.speak.spawn("")
             # Warm up 3 containers for now.
-            if tts_enabled:
-                for _ in range(3):
-                    tts.speak.spawn("")
+            # if tts_enabled:
+            #     for _ in range(3):
+            #         tts.speak.spawn("")
             return
 
         def speak(sentence, elevenlabs_voice_id=None):
             if tts_enabled:
                 fc = tts.speak.spawn(sentence, elevenlabs_voice_id, top_emotion)
-                # fc = tts.speak.remote(sentence, elevenlabs_voice_id)
                 return {
                     "type": "audio",
                     "value": fc.object_id,
-                    # "value": fc,
                 }
             else:
                 print("Not tts")
@@ -80,11 +84,11 @@ def web():
             for segment in llm.generate.remote_gen(body["input"]):
                 yield {"type": "text", "value": segment}
                 sentence += segment
-                for p in PUNCTUATION:
-                    if p in sentence:
-                        prev_sentence, new_sentence = sentence.rsplit(p, 1)
-                        yield speak(prev_sentence, elevenlabs_voice_id)
-                        sentence = new_sentence
+                # for p in PUNCTUATION:
+                #     if p in sentence:
+                #         prev_sentence, new_sentence = sentence.rsplit(p, 1)
+                #         yield speak(prev_sentence, elevenlabs_voice_id)
+                #         sentence = new_sentence
 
             if sentence:
                 yield speak(sentence, elevenlabs_voice_id)

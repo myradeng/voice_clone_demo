@@ -5,6 +5,8 @@ Calling ElevenLabs TTS API
 import io
 import tempfile
 from modal import Image, method, build, enter, Mount
+from modal.functions import FunctionCall
+from fastapi.responses import Response
 from pathlib import Path
 from .common import stub
 
@@ -111,8 +113,15 @@ class TTS:
     def speak(self, text, voice_id=None, top_emotion=None, *args, **kwargs):
         if not text: # empty string in noop case
             return
-    
-        print("in speak top emotion: ", top_emotion)
+        if top_emotion == -1: # default
+            pass
+        else:
+            fc = FunctionCall.from_id(top_emotion)
+            try:
+                top_emotion = fc.get(timeout=120)
+            except TimeoutError:
+                return Response(status_code=202)
+            print("in speak top emotion: ", top_emotion)
 
         audio_prompt = '/audio/myra_1.wav'
         text_with_prompt = 'Hi, I\'m just testing this out to get some good quality training data on my conversational voice,' + \
@@ -132,11 +141,10 @@ class TTS:
             decode_config=self.decode_config,
             prompt_end_frame=num_frames,
         )
-        # print(concated_audio.shape, gen_audio.shape, gen_audio[0].shape)
         audio_blob = self.process_synthesis_result(gen_audio[0].cpu())
 
         return audio_blob
-        # return gen_audio[0].cpu().numpy()
+
 
 # For local testing, run `modal run src.tts_voicecraft::test_voicecraft --text "Where is the best sushi in New York?"`
 @stub.function(image=tortoise_image, mounts=[Mount.from_local_dir(audio_path, remote_path="/audio")])
