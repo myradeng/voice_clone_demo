@@ -30,7 +30,7 @@ const chatMachine = createMachine(
       pendingSegments: 0,
       transcript: "",
       messages: 1,
-      top_emotion: null,
+      top_emotion: -1, // default
     },
     states: {
       botGenerating: {
