@@ -30,6 +30,7 @@ const chatMachine = createMachine(
       pendingSegments: 0,
       transcript: "",
       messages: 1,
+      top_emotion: null,
     },
     states: {
       botGenerating: {
@@ -92,6 +93,7 @@ const chatMachine = createMachine(
           console.log(context, event);
           return context.transcript + event.transcript;
         },
+        top_emotion: (context, event) => event.data.top_emotion,
       }),
       resetPendingSegments: assign({ pendingSegments: 0 }),
       incrementMessages: assign({
@@ -132,7 +134,7 @@ function Sidebar({
             AI
           </span>
         </h1>
-        </div>
+      </div>
       <div className="flex flex-row justify-evenly mb-4">
         <button
           className="flex items-center justify-center w-8 h-8 min-w-8 min-h-8 fill-zinc-300 hover:fill-zinc-50"
@@ -499,10 +501,9 @@ function App() {
     const subscription = service.subscribe((state, event) => {
       console.log("Transitioned to state:", state.value, state.context);
       if (event && event.type === "TRANSCRIPT_RECVD") {
-        const { text, top_emotion } = event.data;
+        const text = event.data.text;
+        const top_emotion = event.data.top_emotion;
         setFullMessage((m) => m + (m ? text : text.trim()));
-        // Handle the top_emotion as needed
-        console.log("Top emotion:", top_emotion);
       }
     });
 
@@ -522,7 +523,8 @@ function App() {
         noop,
         input,
         history.slice(1),
-        isTortoiseOn
+        isTortoiseOn,
+        state.context.top_emotion
       )) {
         if (type === "text") {
           setFullMessage((m) => m + payload);
@@ -552,14 +554,14 @@ function App() {
         send("GENERATION_DONE");
       }
     },
-    [history, isTortoiseOn]
+    [history, isTortoiseOn, state.context.top_emotion]
   );
 
   useEffect(() => {
     const transition = state.context.messages > history.length + 1;
 
     if (transition && state.matches("botGenerating")) {
-      generateResponse(/* noop = */ false, fullMessage);
+      generateResponse(/* noop = */ false, fullMessage, state.context.top_emotion);
     }
 
     if (transition) {
@@ -567,7 +569,7 @@ function App() {
       setFullMessage("");
       setTypedMessage("");
     }
-  }, [state, history, fullMessage]);
+  }, [state, history, fullMessage, state.context.top_emotion]);
 
   const onSegmentRecv = useCallback(
     async (buffer) => {
@@ -577,7 +579,7 @@ function App() {
       // TODO: these can get reordered
       const { text, top_emotion } = await fetchTranscript(buffer);
       if (buffer.length) {
-        send({ type: "TRANSCRIPT_RECVD", data: { text, top_emotion }});
+        send({ type: "TRANSCRIPT_RECVD", data: { text, top_emotion } });
       }
     },
     [history]

@@ -10,11 +10,13 @@ from .common import stub
 
 MODEL_NAME = "base.en"
 
-
 def download_model():
     import whisper
+    from funasr import AutoModel
 
     whisper.load_model(MODEL_NAME)
+    AutoModel(model="iic/emotion2vec_base_finetuned")
+
 
 transcriber_image = (
     Image.debian_slim(python_version="3.10.8")
@@ -73,13 +75,14 @@ class Whisper:
     def load_model(self):
         import torch
         import whisper
+        from funasr import AutoModel
         from modelscope.pipelines import pipeline
         from modelscope.utils.constant import Tasks
 
         self.use_gpu = torch.cuda.is_available()
         device = "cuda" if self.use_gpu else "cpu"
         self.model = whisper.load_model(MODEL_NAME, device=device)
-        self.emotion2vec_pipeline = pipeline(task=Tasks.emotion_recognition, model="iic/emotion2vec_plus_base")
+        self.emotion_model = AutoModel(model="iic/emotion2vec_base_finetuned")
     
     @method()
     def transcribe_segment(
@@ -88,7 +91,7 @@ class Whisper:
     ):
         t0 = time.time()
         np_array = load_audio(audio_data)
-        rec_result = self.emotion2vec_pipeline(np_array, output_dir="./outputs", granularity="utterance", extract_embedding=True)
+        rec_result = self.emotion_model.generate(np_array, output_dir="./outputs", granularity="utterance", extract_embedding=False)
         top_emotion = None
         emotion_dict = rec_result[0]
         if emotion_dict['scores']:
