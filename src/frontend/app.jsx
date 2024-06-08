@@ -398,7 +398,6 @@ class PlayQueue {
       this._onEnd(idx);
       return;
     }
-
     const arrayBuffer = await response.arrayBuffer();
     const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
 

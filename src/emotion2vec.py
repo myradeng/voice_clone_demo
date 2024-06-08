@@ -18,7 +18,8 @@ e2v_data_path = Path(__file__).with_name("e2v_data").resolve()
 def download_model():
     from funasr import AutoModel
 
-    AutoModel(model="iic/emotion2vec_base_finetuned")
+    # AutoModel(model="iic/emotion2vec_base_finetuned")
+    AutoModel(model="iic/emotion2vec_plus_large")
 
 e2v_image = (
     Image.debian_slim(python_version="3.10.8")
@@ -49,9 +50,10 @@ class Emotion2Vec:
 
     @enter()
     def load_model(self):
-        self.emotion_vectors = np.load(f'/e2v_data/{self.person}_e2v.npy')
-        self.emotion_model = AutoModel(model="iic/emotion2vec_base_finetuned")
-    
+        self.emotion_vectors = np.load(f'/e2v_data/{self.person}_e2v_plus_large.npy')
+        # self.emotion_model = AutoModel(model="iic/emotion2vec_base_finetuned")
+        self.emotion_model = AutoModel(model="iic/emotion2vec_plus_large")
+
     @method()
     def get_emotion_rag(
         self,
@@ -73,11 +75,17 @@ class Emotion2Vec:
             top_emotion = top_emotion.split('/')[-1]
             print("Top scored emotion:", top_emotion)
 
-            rag_distances = np.sum((self.emotion_vectors[max_score_index] \
-                - emotion_dict['feats'][None, :])**2, axis=-1)
+            # rag_distances = np.sum((self.emotion_vectors.reshape((45, -1)) \
+            #     - emotion_dict['feats'][None, :])**2, axis=-1)
+            rag_distances = 1 - np.sum(self.emotion_vectors.reshape((45, -1)) * emotion_dict['feats'][None, :], axis=-1) \
+                / np.sqrt(np.sum(self.emotion_vectors.reshape((45, -1))**2, axis=-1)) \
+                / np.sqrt(np.sum(emotion_dict['feats'][None, :]**2))
             print(rag_distances)
-            best_sample_idx = np.argmin(rag_distances) + 1
-            best_file = f'/audio/{self.person}_{IDX_TO_EMOTION[max_score_index]}_{best_sample_idx}.wav'
+            best_idx = np.argmin(rag_distances)
+            emotion_selected = best_idx // 5
+            best_sample_idx = best_idx % 5 + 1
+            best_file = f'/audio/{self.person}_{IDX_TO_EMOTION[emotion_selected]}_{best_sample_idx}.wav'
+
 
         print(f"E2V in {time.time() - t0:.2f}s")
 
@@ -98,11 +106,12 @@ def generate_emotion_vectors():
     import numpy as np
     from funasr import AutoModel
 
-    e2v = AutoModel(model="iic/emotion2vec_base_finetuned")
+    # e2v = AutoModel(model="iic/emotion2vec_base_finetuned")
+    e2v = AutoModel(model="iic/emotion2vec_plus_large")
     emotions = ['angry', 'disgusted', 'fearful', 'happy', 'neutral',
                 'other', 'sad', 'surprised', 'unknown']
     person = 'myra'
-    all_vecs = np.zeros((9, 5, 768), dtype=np.float32)
+    all_vecs = np.zeros((9, 5, 1024), dtype=np.float32)
     for i, emot in enumerate(emotions):
         print(i, emot)
         for j in range(1, 6):

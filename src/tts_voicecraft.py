@@ -72,12 +72,12 @@ class TTS:
             'top_k': 0,
             'top_p': 0.9,
             'temperature': 1,
-            'stop_repetition': 3,
+            'stop_repetition': 1,
             'kvcache': 1,
             "codec_audio_sr": 16000,
             "codec_sr": 50,
             "silence_tokens": [1388, 1898, 131],
-            "sample_batch_size": 2,
+            "sample_batch_size": 16,
         }
         self.person = person
     
@@ -132,7 +132,7 @@ class TTS:
         emotion_type = top_emotion.split('_')[-2]
         type_idx = EMOTION_TO_IDX[emotion_type]
         sample_idx = int(top_emotion.split('_')[-1].split('.')[0]) - 1
-
+        print(top_emotion, type_idx, sample_idx)
         pre_prompt_text = AUDIO_RAG_TEXT[type_idx][sample_idx]
         text_with_prompt = pre_prompt_text + ' ' + text
         info = torchaudio.info(audio_prompt)

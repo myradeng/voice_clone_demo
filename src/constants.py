@@ -10,7 +10,7 @@ AUDIO_RAG_TEXT = [
     [ # disgusted
         'The stench emanating from that dumpster is nauseating.',
         'I can\'t believe they served us this rotten, maggot-infested food.',
-        'The sight of that festering wound makes my skin crawl.'
+        'The sight of that festering wound makes my skin crawl.',
         'I\'m appalled by your lack of hygiene and basic cleanliness.',
         'The mere thought of their morally reprehensible actions sickens me.',
 
