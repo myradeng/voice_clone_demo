@@ -399,17 +399,23 @@ class PlayQueue {
       return;
     }
 
-    const arrayBuffer = await response.arrayBuffer();
-    const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-
-    const source = this.audioContext.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(this.audioContext.destination);
-
-    source.onended = () => this._onEnd(idx);
-
-    this._updateState(idx, INDICATOR_TYPE.TALKING);
-    source.start();
+    try {
+      const blob = await response.blob();
+      const audioBuffer = await blob.arrayBuffer();
+      const decodedAudioBuffer = await this.audioContext.decodeAudioData(audioBuffer);
+  
+      const source = this.audioContext.createBufferSource();
+      source.buffer = decodedAudioBuffer;
+      source.connect(this.audioContext.destination);
+  
+      source.onended = () => this._onEnd(idx);
+  
+      this._updateState(idx, INDICATOR_TYPE.TALKING);
+      source.start();
+    } catch (error) {
+      console.error("Error decoding audio:", error);
+      this._onEnd(idx);
+    }
   }
 
   clear() {

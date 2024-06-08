@@ -24,6 +24,7 @@ PERSON = "George"
 @stub.function(
     mounts=[Mount.from_local_dir(static_path, remote_path="/assets")],
     container_idle_timeout=300,
+    gpu="A100", 
     timeout=600,
     secrets=[Secret.from_name("my-openai-secret"), Secret.from_name("my-elevenlabs-secret")]
 )
@@ -106,7 +107,7 @@ def web():
     @web_app.get("/audio/{call_id}")
     async def get_audio(call_id: str):
         from modal.functions import FunctionCall
-        
+
         function_call = FunctionCall.from_id(call_id)
         try:
             result = function_call.get(timeout=120)
@@ -115,6 +116,7 @@ def web():
 
         if result is None:
             return Response(status_code=204)
+
         print("streaming response in app_py")
         return StreamingResponse(result, media_type="audio/wav")
 

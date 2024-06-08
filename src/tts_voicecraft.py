@@ -61,7 +61,7 @@ with tortoise_image.imports():
 
 @stub.cls(
     image=tortoise_image,
-    gpu="A10G",
+    gpu="A100",
     container_idle_timeout=600,
     timeout=600,
     mounts=[Mount.from_local_dir(audio_path, remote_path="/audio")]

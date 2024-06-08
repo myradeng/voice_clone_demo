@@ -111,7 +111,7 @@ def setup_rag_chain(llm, api_key, person='Myra'):
     person_full = "Myra Deng" if person == "Myra" else "George Hu"
     qa_system_prompt = f"Use the following pieces of context to answer the question at the end as if you are {person_full}.\n"
     qa_system_prompt += """Respond naturally and colloquially like you're having a casual conversation. 
-    Use two sentences maximum and keep the answer as concise as possible\
+    Use ONE sentence maximum and keep the answer as concise as possible\
     {context}"""
     qa_prompt = ChatPromptTemplate.from_messages(
         [
