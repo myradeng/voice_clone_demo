@@ -9,6 +9,9 @@ personalize the language model and speech synthesis components to specific targe
 chats or "get-to-know-you" conversations. Our experiments demonstrate the effectiveness of retrieval augmented generation for providing
 realistic and personalized answers, and finetuned TTS models for generating high quality personalized speech. Furthermore, we introduce AudioRAG, a novel method for retrieving emotion-matching audio samples to generate expressive speech. The resulting voice agent system achieves high quality in terms of realism, expressiveness, and personalization with reasonable latency, offering a promising direction for AI-driven personal voice clones.
 
+## Paper Report 
+https://drive.google.com/file/d/1IOI0cnyRXUW1d1VGFaHj29nqUgneSPZV/view?usp=drive_link 
+
 ## File structure
 
 1. React frontend ([`src/frontend/`](./src/frontend/))
