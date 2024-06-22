@@ -1,27 +1,13 @@
 # Expressive Voice Agents
 
-To get the VoiceCraft submodule, do
-```
-git submodule update
-```
-The way VoiceCraft is coded right now requies manually downloading the encodec function, so do `wget https://huggingface.co/pyp1/VoiceCraft/resolve/main/encodec_4cb2048_giga.th` and make sure the file is in the directory: `VoiceCraft/pretrained_models/`
+Recent advancements in speech and language models have enabled the generation of high quality, natural-sounding speech. However,
+current voice chat systems often lack the ability to generate properly emotive and personalized responses. In this project, we present
+an **integrated voice agent system** that leverages these advancements to create **expressive and personalized voice agents**. 
 
-
-
-
-# QuiLLMan: Voice Chat with LLMs
-
-A complete chat app that transcribes audio in real-time, streams back a response from a language model, and synthesizes this response as natural-sounding speech.
-
-This repo is meant to serve as a starting point for your own language model-based apps, as well as a playground for experimentation. Contributions are welcome and encouraged!
-
-![quillman](https://user-images.githubusercontent.com/5786378/233804923-c13627de-97db-4050-a36b-62d955db9c19.gif)
-
-The language model used is [Zephyr](https://arxiv.org/abs/2310.16944). [OpenAI Whisper](https://github.com/openai/whisper) is used for transcription, and [Metavoice Tortoise TTS](https://github.com/metavoicexyz/tortoise-tts) is used for text-to-speech. The entire app, including the frontend, is made to be deployed serverlessly on [Modal](http://modal.com/).
-
-You can find the demo live [here](https://modal-labs--quillman-web.modal.run/).
-
-[Note: this code is provided for illustration only; please remember to check the license before using any model for commercial purposes.]
+Our system consists of three main components: speech transcription, language model generation with question answering, and text-to-speech synthesis. We
+personalize the language model and speech synthesis components to specific target individuals, focusing on the use case of casual coffee
+chats or "get-to-know-you" conversations. Our experiments demonstrate the effectiveness of retrieval augmented generation for providing
+realistic and personalized answers, and finetuned TTS models for generating high quality personalized speech. Furthermore, we introduce AudioRAG, a novel method for retrieving emotion-matching audio samples to generate expressive speech. The resulting voice agent system achieves high quality in terms of realism, expressiveness, and personalization with reasonable latency, offering a promising direction for AI-driven personal voice clones.
 
 ## File structure
 
@@ -40,6 +26,12 @@ Read the accompanying [docs](https://modal.com/docs/examples/llm-voice-chat) for
 - `modal` installed in your current Python virtual environment (`pip install modal`)
 - A [Modal](http://modal.com/) account
 - A Modal token set up in your environment (`modal token new`)
+
+- To get the VoiceCraft submodule, do
+```
+git submodule update
+```
+The way VoiceCraft is coded right now requies manually downloading the encodec function, so do `wget https://huggingface.co/pyp1/VoiceCraft/resolve/main/encodec_4cb2048_giga.th` and make sure the file is in the directory: `VoiceCraft/pretrained_models/`
 
 ### Develop on Modal
 
